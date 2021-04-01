@@ -34,6 +34,14 @@ class Museum extends ActiveRecord
     }
 
     /**
+     * @return string
+     */
+    public static function customLogic()
+    {
+        return 'customLogic';
+    }
+
+    /**
      * @inheritdoc
      */
     public function behaviors()
