@@ -1,0 +1,12 @@
+{
+    "name": "esco8800/test-php-ast-parser",
+    "description": "Тестирование php ast парсера для gii",
+    "require": {
+        "nikic/php-parser": "^4.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "classes\\": "classes"
+        }
+    }
+}
