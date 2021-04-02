@@ -5,6 +5,8 @@ namespace classes;
 use PhpParser\{Lexer, NodeTraverser, NodeVisitor, Parser, PrettyPrinter, NodeFinder, Error};
 use classes\visitors\MyNodeVisitor;
 use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\ParserFactory;
+use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 
@@ -17,18 +19,19 @@ class Generator
 
     public function __construct()
     {
-        $this->lexer = new Lexer\Emulative([
-            'usedAttributes' => [
-                'comments',
-                'startLine', 'endLine',
-                'startTokenPos', 'endTokenPos',
-            ],
-        ]);
-        $this->parser = new Parser\Php7($this->lexer);
-        $this->traverser = new NodeTraverser();
-        $this->traverser->addVisitor(new NodeVisitor\CloningVisitor());
-        $this->traverser->addVisitor(new MyNodeVisitor);
-        $this->printer = new PrettyPrinter\Standard();
+//        $this->lexer = new Lexer\Emulative([
+//            'usedAttributes' => [
+//                'comments',
+//                'startLine', 'endLine',
+//                'startTokenPos', 'endTokenPos',
+//            ],
+//        ]);
+//        $this->parser = new Parser\Php7($this->lexer);
+        $this->parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+//        $this->traverser = new NodeTraverser();
+//        $this->traverser->addVisitor(new NodeVisitor\CloningVisitor());
+//        $this->traverser->addVisitor(new MyNodeVisitor);
+        $this->printer = new PrettyPrinter\Standard(['shortArraySyntax']);
     }
 
 
@@ -50,20 +53,24 @@ class Generator
         $modelChangedPath = __DIR__ . '/changed/Museum.php';
         $modelOutputPath = __DIR__ . '/output/Museum.php';
 
-        $oldStmts = $this->parser->parse(file_get_contents($modelInitialPath));
-        $oldTokens = $this->lexer->getTokens();
+        $oldStmts = $this->getOldSmtms($modelInitialPath);
 
         $changedStmts = $this->parser->parse(file_get_contents($modelChangedPath));
-        $changedTokens = $this->lexer->getTokens();
+//        $changedTokens = $this->lexer->getTokens();
 
         $newStmts = $this->replaceGroupUseStatements($oldStmts, $changedStmts);
-
-//        $newStmts = $this->traverser->traverse($changedStmts);
+//        $newStmts = $this->traverser->traverse($newStmts);
 
          // MODIFY $newStmts HERE
 
-        $newCode = $this->printer->printFormatPreserving($newStmts, $changedStmts, $changedTokens);
+        $newCode = $this->printer->prettyPrintFile($newStmts);
         file_put_contents($modelOutputPath, $newCode);
+    }
+
+    protected function getOldSmtms($modelInitialPath): array
+    {
+        $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+        return $parser->parse(file_get_contents($modelInitialPath));
     }
 
     /**
@@ -104,40 +111,33 @@ class Generator
                 $diff[] = $oldClassMethod;
             }
         }
-        return array_merge($diff, $changedClassMethods);
+
+        return $diff;
     }
 
     /**
-     * @param Node[] $oldStmts
-     * @param Node[] $changedStmts
+     * @param array $oldStmts
+     * @param array $changedStmts
      *
-     * @return Node[]
+     * @return array
      */
     private function replaceGroupUseStatements(array $oldStmts, array $changedStmts): array
     {
-        $newMethods = $this->getMergeMethods($oldStmts, $changedStmts);
+        $diff = $this->getMergeMethods($oldStmts, $changedStmts);
 
-        foreach ($oldStmts as $oldStmt) {
-            if (false === ($oldStmt instanceof Class_)) {
-                continue;
-            }
+        foreach ($changedStmts as $changedStmt) {
+            foreach ($changedStmt->stmts as $stmt) {
 
-            /** @var Class_ $oldStmt */
-            $statements = $oldStmt->stmts;
-
-            $newStatements = [];
-
-            foreach ($statements as $statement) {
-                if ($statement instanceof ClassMethod) {
+                if (false === ($stmt instanceof Class_)) {
                     continue;
-                } else {
-                    $newStatements[] = $statement;
                 }
+
+                $stmt->stmts = array_merge($stmt->stmts, $diff);
+                var_dump($stmt->stmts);
             }
-            $newNodes = array_merge($newMethods, $newStatements);
-            $oldStmt->stmts = $newNodes;
         }
-        return $oldStmts;
+
+        return $changedStmts;
     }
 
 }

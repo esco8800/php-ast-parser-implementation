@@ -42,6 +42,7 @@ class Museum extends ActiveRecord
     {
         return [
             TimestampBehavior::class,
+            TimestampBehavior::class,
         ];
     }
 
