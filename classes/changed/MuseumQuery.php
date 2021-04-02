@@ -10,8 +10,10 @@ namespace common\modules\user\models\scopes;
 
 use chulakov\model\models\scopes\ActiveQuery;
 use chulakov\model\models\scopes\QueryIdTrait;
+use chulakov\model\models\scopes\QuerySlugTrait;
 
 class MuseumQuery extends ActiveQuery
 {
-    use QueryIdTrait;
+    use QueryIdTrait,
+        QuerySlugTrait;
 }

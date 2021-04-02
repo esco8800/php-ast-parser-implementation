@@ -24,4 +24,12 @@ class MuseumForm extends Form
      * @var string
      */
     public $address;
+    /**
+     * @var string
+     */
+    public $slug;
+    /**
+     * @var string
+     */
+    public $type;
 }

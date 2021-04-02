@@ -24,7 +24,7 @@ class MuseumMapper extends Mapper
      */
     public function initFillAttributes()
     {
-        return ['name', 'address'];
+        return ['name', 'address', 'slug', 'type'];
     }
 
     /**
@@ -44,8 +44,11 @@ class MuseumMapper extends Mapper
     public function initModelRules()
     {
         return [
-            [['name', 'address'], 'required'],
+            [['name', 'address', 'slug', 'type'], 'required'],
             [['name', 'address'], 'string', 'max' => 128],
+            [['slug'], 'string', 'max' => 255],
+            [['type'], 'string', 'max' => 6],
+            [['slug'], 'unique'],
         ];
     }
 
@@ -60,6 +63,8 @@ class MuseumMapper extends Mapper
             'address' => Yii::t('ch/user', 'Address'),
             'created_at' => Yii::t('ch/all', 'Created At'),
             'updated_at' => Yii::t('ch/all', 'Updated At'),
+            'slug' => Yii::t('ch/all', 'Slug'),
+            'type' => Yii::t('ch/user', 'Type'),
         ];
     }
 }

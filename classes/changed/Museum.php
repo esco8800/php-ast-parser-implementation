@@ -22,6 +22,8 @@ use common\modules\user\models\mappers\MuseumMapper;
  * @property string $address
  * @property integer $created_at
  * @property integer $updated_at
+ * @property string $slug
+ * @property string $type
  */
 class Museum extends ActiveRecord
 {
@@ -57,5 +59,13 @@ class Museum extends ActiveRecord
     public static function mapper()
     {
         return MuseumMapper::instance();
+    }
+
+    /**
+     * @return MuseumMapper
+     */
+    public static function newGenerate()
+    {
+        return 'new';
     }
 }
